@@ -1,6 +1,6 @@
 #!/bin/bash
 # Licensed under WTFPL 2018 by cbk914@riseup.net
-# Version 0.1.29b
+# Version 0.1.30b
 
 clear
 MAGENTA="\e[35m"
@@ -99,8 +99,8 @@ sleep 3
 echo $LIGHTGREEN"[+] Downloading example testcases..."$NOCOLOR
 cd /usr/local/bin/Suricata_AFL/fuzzing/AFL_testcases
 wget http://lcamtuf.coredump.cx/afl/demo/afl_testcases.tgz
-tar xzf ../afl-testcases.tgz
-#rm afl-testcases.tgz
+tar xzf ./afl-testcases.tgz
+rm ./afl-testcases.tgz
 sleep 3
 
 echo $LIGHTGREEN"[*] All processes finished successfully!!"
@@ -116,6 +116,7 @@ echo "And reproduce obtained crashes loading them as args to suricata from gdb"
 echo "Analyze obtained crashes with:"
 echo $LIGHTCYAN"$ afl-collect -d crashes.db -e gdb_script -r -rr ./output_crash_dir_from_afl_fuzz ./afl_collect_output_dir -j 8 -- /path/to/target"
 echo $LIGHTYELLOW"For better inspection you can also install some gdb extensions like 'pwndbg' and 'gdb-peda'"
+echo $NOCOLOR
 sleep 3
 
 # Suricata options for AFL:
