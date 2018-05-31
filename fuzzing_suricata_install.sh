@@ -1,6 +1,6 @@
 #!/bin/bash
 # Licensed under WTFPL 2018 by cbk914@riseup.net
-# Version 0.1.30b
+# Version 0.1.31b
 
 clear
 MAGENTA="\e[35m"
@@ -99,8 +99,8 @@ sleep 3
 echo $LIGHTGREEN"[+] Downloading example testcases..."$NOCOLOR
 cd /usr/local/bin/Suricata_AFL/fuzzing/AFL_testcases
 wget http://lcamtuf.coredump.cx/afl/demo/afl_testcases.tgz
-tar xzf ./afl-testcases.tgz
-rm ./afl-testcases.tgz
+tar xzf /usr/local/bin/Suricata_AFL/fuzzing/afl-testcases.tgz
+rm /usr/local/bin/Suricata_AFL/fuzzing/afl-testcases.tgz
 sleep 3
 
 echo $LIGHTGREEN"[*] All processes finished successfully!!"
