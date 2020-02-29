@@ -1,2 +1,3 @@
 #!/bin/bash
-curl ifconfig.me
+#curl ifconfig.me
+curl ipinfo.io
