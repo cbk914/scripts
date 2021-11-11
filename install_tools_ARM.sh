@@ -40,21 +40,30 @@ mkdir ~/powershell
 tar -xvf ./powershell-7.2.0-linux-arm64.tar.gz -C ~/powershell
 
 # Start PowerShell
-~/powershell/pwsh
+# ~/powershell/pwsh
 
 # Create symbolic link for pwsh
 sudo ln -s ~/powershell/pwsh /usr/bin/pwsh
 
 # Install Metasploit
-sudo apt-get install rbenv
-rbenv rehash
-apt-get install git ruby rubygems ruby-pg postgresql-common libpq-dev libpcap0.8 bundler ruby-pcaprub libpcap0.8 libpcap0.8-dev libsqlite3-dev 
-sudo gem install bundler
-git clone git://github.com/rapid7/metasploit-framework
-cd ~/metasploit-framework; ./msfupdate
-bundle install
+#sudo apt-get install rbenv
+#rbenv rehash
+#apt-get install git ruby rubygems ruby-pg postgresql-common libpq-dev libpcap0.8 bundler ruby-pcaprub libpcap0.8 libpcap0.8-dev libsqlite3-dev 
+#sudo gem install bundler
+#git clone git://github.com/rapid7/metasploit-framework
+#cd ~/metasploit-framework; ./msfupdate
+#bundle install
+curl https://raw.githubusercontent.com/rapid7/metasploit-omnibus/master/config/templates/metasploit-framework-wrappers/msfupdate.erb > msfinstall && \
+  chmod 755 msfinstall && ./msfinstall
 msfdb init
 msfupdate
+
+# Install Veil Framework
+sudo apt-get -y install git
+git clone https://github.com/Veil-Framework/Veil.git
+cd Veil/
+./config/setup.sh --force --silent
+cd ~
 
 # Install ExploitDB
 git clone https://github.com/offensive-security/exploitdb.git /opt/exploit-database
