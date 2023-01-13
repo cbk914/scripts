@@ -1,4 +1,5 @@
 # Check Follina CVE-2022-30190
+
 import argparse
 import re
 import requests
