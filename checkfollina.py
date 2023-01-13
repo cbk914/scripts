@@ -1,4 +1,8 @@
 # Check Follina CVE-2022-30190
+<<<<<<< HEAD
+=======
+
+>>>>>>> 7fbfe64390d1c30faa0daafbc2f28b0aa766c9b9
 import argparse
 import re
 import requests
@@ -46,4 +50,8 @@ response = requests.get(args.target, headers=headers)
 if "Vulnerable" in response.text:
     print("Target is vulnerable to CVE-2022-30190.")
 else:
+<<<<<<< HEAD
     print("Target is not vulnerable to CVE-2022-30190.")
+=======
+    print("Target is not vulnerable to CVE-2022-30190.")
+>>>>>>> 7fbfe64390d1c30faa0daafbc2f28b0aa766c9b9

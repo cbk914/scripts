@@ -51,3 +51,4 @@ if "uid=" in response.text:
 	print("Target is vulnerable to log4j RCE (CVE-2017-5645).")
 else:
 	print("Target is not vulnerable to log4j RCE (CVE-2017-5645).")
+
