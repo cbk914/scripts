@@ -1,8 +1,5 @@
 #!/usr/bin/env python
-<<<<<<< HEAD
-=======
 # Author cbk914
->>>>>>> 7e0e86feb9d313b5c5afc7fec013e7177f982f89
 import re
 import argparse
 import requests
@@ -59,8 +56,5 @@ nmap_cmd = "nmap -sV --min-rate=5000 -Pn -vvv -script=vulners " + url
 if args.output:
     nmap_cmd += f" -oX {args.output}"
 output = subprocess.run(nmap_cmd, shell=True, check=True)
-<<<<<<< HEAD
+
 print(output)
-=======
-print(output)
->>>>>>> 7e0e86feb9d313b5c5afc7fec013e7177f982f89
