@@ -10,11 +10,13 @@ function display_help {
     exit 0
 }
 
-while getopts "f:u:h" opt; do
+while getopts "f:u:p:h" opt; do
   case $opt in
     f) file="$OPTARG"
     ;;
     u) url_base="$OPTARG"
+    ;;
+    p) proxy="$OPTARG"
     ;;
     h) display_help
     ;;
@@ -39,5 +41,9 @@ while read line; do
     # Print the URL
     echo $url
     # Use curl to send a request to the URL
-    curl $url
-
+    if [ -z "$proxy" ]; then
+        curl -k $url
+    else
+        curl -x $proxy $url
+    fi
+done < $file
