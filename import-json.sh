@@ -38,8 +38,13 @@ while read line; do
     uri=$(echo $line | jq -r '.result.uri')
     # Construct the full URL
     url="$url_base$uri"
+    # Remove duplicates
+    if [[ ! " ${url[@]} " =~ " ${url} " ]]; then
     # Print the URL
     echo $url
+    url+=($url)
+    fi
+    echo "Duplicate URLs removed."
     # Use curl to send a request to the URL
     if [ -z "$proxy" ]; then
         curl -k $url
