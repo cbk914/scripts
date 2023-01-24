@@ -1,5 +1,5 @@
 #!/bin/bash
-
+# Author cbk914
 function display_help {
     echo "Usage: $0 -f file -u url [-p proxy] [-h]"
     echo "Retrieves URLs from a JSON file and sends a request to each URL using curl"
