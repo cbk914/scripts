@@ -1,7 +1,7 @@
 #!/bin/bash
 
 function display_help {
-    echo "Usage: $0 -f file -u url [-h]"
+    echo "Usage: $0 -f file -u url [-p] [-h]"
     echo "Retrieves URLs from a JSON file and sends a request to each URL using curl"
     echo "  -f file         path to the JSON file"
     echo "  -u url          base URL to append the URI to"
