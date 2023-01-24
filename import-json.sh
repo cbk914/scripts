@@ -45,11 +45,16 @@ while read line; do
     echo $url
     url+=($url)
     fi
-    echo "Duplicate URLs removed."
     # Use curl to send a request to the URL
-    if [ -z "$proxy" ]; then
-        curl -k $url
+    if [ -z "$proxy" ] || [ "$proxy" == "null" ]; then
+        curl -k -L $url
     else
-        curl -k -x $proxy $url
+        curl -k -L -x $proxy $url
+    fi
+    if [ $? -ne 0 ]; then
+        echo "Error: curl command failed"
+    else
+        echo "Duplicate URLs removed."
     fi
 done < $file
+done
