@@ -72,13 +72,13 @@ while IFS='' read -r line || [[ -n "$line" ]]; do
             response_code=$(curl -x $proxy -o /dev/null --silent --head --write-out '%{http_code}' $url)
             echo "URL: $url Response Code: $response_code" >> $output
             if [ $response_code -eq 200 ]; then
-                echo "URL: $url Response Code: $response_code" >> $output-200
+                echo "URL: $url Response Code: $response_code" >> $output-200.txt
             elif [ $response_code -eq 404 ]; then
-                echo "URL: $url Response Code: $response_code" >> $output-404
+                echo "URL: $url Response Code: $response_code" >> $output-404.txt
 			elif [ $response_code -eq 403 ]; then
-                echo "URL: $url Response Code: $response_code" >> $output-403
+                echo "URL: $url Response Code: $response_code" >> $output-403.txt
             elif [ $response_code -eq 500 ]; then
-                echo "URL: $url Response Code: $response_code" >> $output-500
+                echo "URL: $url Response Code: $response_code" >> $output-500.txt
             else
                 echo "URL: $url Response Code: $response_code" >> $output-other
             fi
