@@ -6,6 +6,7 @@ function display_help {
     echo "Retrieves URLs from a JSON file and sends a request to each URL using curl"
     echo "  -f file         path to the JSON file"
     echo "  -u url          base URL to append the URI to"
+    echo "  -p proxy        send URL requests to proxy"
     echo "  -h              display this help and exit"
     exit 0
 }
