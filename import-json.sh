@@ -1,7 +1,7 @@
 #!/bin/bash
 
 function display_help {
-    echo "Usage: $0 -f file -u url [-p] [-h]"
+    echo "Usage: $0 -f file -u url [-p proxy] [-h]"
     echo "Retrieves URLs from a JSON file and sends a request to each URL using curl"
     echo "  -f file         path to the JSON file"
     echo "  -u url          base URL to append the URI to"
@@ -34,7 +34,7 @@ fi
 
 urls=()
 # Iterate through each line of the file
-while read line; do
+while IFS='' read -r line || [[ -n "$line" ]]; do
     # Extract the URI using jq
     uri=$(echo $line | jq -r '.result.uri')
     # Construct the full URL
@@ -56,4 +56,4 @@ while read line; do
     if [ $? -ne 0 ]; then
         echo "Error: curl command failed"
     fi
-done < $file
+done < "$file"
