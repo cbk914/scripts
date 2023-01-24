@@ -1,37 +1,47 @@
 
-import json
-import argparse
-import requests
+function display_help {
+    echo "Usage: $0 -f file -u url [-h]"
+    echo "Retrieves URLs from a JSON file and sends a request to each URL using curl"
+    echo "  -f file         path to the JSON file"
+    echo "  -u url          base URL to append the URI to"
+    echo "  -h              display this help and exit"
+    exit 0
+}
 
-def display_help():
-    print("Usage: python script.py -f file -u url [-h]")
-    print("Retrieves URLs from a JSON file and sends a request to each URL using requests")
-    print("  -f file         path to the JSON file")
-    print("  -u url          base URL to append the URI to")
-    print("  -h              display this help and exit")
-    exit(0)
+while getopts "f:u:p:h" opt; do
+  case $opt in
+    f) file="$OPTARG"
+    ;;
+    u) url_base="$OPTARG"
+    ;;
+    p) proxy="$OPTARG"
+    ;;
+    h) display_help
+    ;;
+    \?) echo "Invalid option -$OPTARG" >&2
+    exit 1
+    ;;
+  esac
+done
 
-# Define the command-line options
-parser = argparse.ArgumentParser(description='Retrieves URLs from a JSON file and sends a request to each URL using requests')
-parser.add_argument('-f', '--file', help='path to the JSON file', required=True)
-parser.add_argument('-u', '--url', help='base URL to append the URI to', required=True)
-parser.add_argument('-h', '--help', action='store_true', help='display this help and exit')
-args = parser.parse_args()
+# Check that both -f and -u options are set
+if [ -z "$file" ] || [ -z "$url_base" ]; then
+    echo "Error: -f and -u options are required" >&2
+    exit 1
+fi
 
-if args.help:
-    display_help()
-
-# Open the file and iterate through each line
-with open(args.file, 'r') as file:
-    for line in file:
-        # Load the JSON data
-        data = json.loads(line)
-        # Extract the URI
-        uri = data['result']['uri']
-        # Construct the full URL
-        url = args.url + uri
-        # Print the URL
-        print(url)
-        # Send a request to the URL
-        response = requests.get(url)
-        print(response.text)
+# Iterate through each line of the file
+while read line; do
+    # Extract the URI using jq
+    uri=$(echo $line | jq -r '.result.uri')
+    # Construct the full URL
+    url="$url_base$uri"
+    # Print the URL
+    echo $url
+    # Use curl to send a request to the URL
+    if [ -z "$proxy" ]; then
+        curl -k $url
+    else
+        curl -x $proxy $url
+    fi
+done < $file
