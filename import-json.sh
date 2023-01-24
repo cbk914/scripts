@@ -1,5 +1,5 @@
 #!/bin/bash
-
+# Author cbk914
 
 function display_help {
     echo "Usage: $0 -f file -u url [-h]"
@@ -44,6 +44,6 @@ while read line; do
     if [ -z "$proxy" ]; then
         curl -k $url
     else
-        curl -x $proxy $url
+        curl -k -x $proxy $url
     fi
 done < $file
