@@ -1,5 +1,4 @@
 #!/bin/bash
-# Author cbk914
 
 function display_help {
     echo "Usage: $0 -f file -u url [-h]"
@@ -33,6 +32,7 @@ if [ -z "$file" ] || [ -z "$url_base" ]; then
     exit 1
 fi
 
+urls=()
 # Iterate through each line of the file
 while read line; do
     # Extract the URI using jq
@@ -40,10 +40,12 @@ while read line; do
     # Construct the full URL
     url="$url_base$uri"
     # Remove duplicates
-    if [[ ! " ${url[@]} " =~ " ${url} " ]]; then
+    if [[ ! " ${urls[@]} " =~ " ${url} " ]]; then
     # Print the URL
     echo $url
-    url+=($url)
+    urls+=($url)
+    else
+        echo "Duplicate URL skipped."
     fi
     # Use curl to send a request to the URL
     if [ -z "$proxy" ] || [ "$proxy" == "null" ]; then
@@ -53,8 +55,5 @@ while read line; do
     fi
     if [ $? -ne 0 ]; then
         echo "Error: curl command failed"
-    else
-        echo "Duplicate URLs removed."
     fi
 done < $file
-done
