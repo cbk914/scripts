@@ -1,5 +1,6 @@
-# Check Headers
-# Author cbk914
+#! /usr/bin/env python3
+# -*- coding: utf-8 -*-
+# Author: cbk914
 import argparse
 import requests
 import os
@@ -24,8 +25,13 @@ if args.file is not None:
 
 try:
     # Send a GET request to the target website
-    protocol = "https://" if "https://" in args.target else "http://"
-    response = requests.get(protocol + args.target)
+    if args.target.startswith("http://") or args.target.startswith("https://"):
+        url = args.target
+    else:
+        url = "http://" + args.target
+    
+    response = requests.get(url)
+    response.raise_for_status()
     headers = response.headers
     status_code = response.status_code
 except requests.exceptions.RequestException as e:
@@ -36,7 +42,7 @@ else:
     print(f"Status code: {status_code}")
     print(headers)
 
-  # Save headers to file
+    # Save headers to file
     if args.file is not None:
         try:
             with open(args.file, 'w') as f:
@@ -46,9 +52,10 @@ else:
             print(f"Headers saved to {args.file}")
         except Exception as e:
             print(f"Error saving headers to file: {e}")
+            exit(1)
 
 # Compare headers with ASVS v4 and WSTG recommendations
-security_headers = ['Strict-Transport-Security', 'X-Frame-Options', 'X-XSS-Protection', 'X-Content-Type-Options']
+security_headers = ['Strict-Transport-Security', 'X-Frame-Options', 'X-XSS-Protection', 'X-Content-Type-Options', 'Content-Security-Policy', 'Referrer-Policy', 'Feature-Policy', 'Content-Security-Policy-Report-Only', 'Public-Key-Pins']
 missing_headers = []
 headers_lower = {k.lower(): v for k, v in headers.items()}
 for header in security_headers:
@@ -58,7 +65,7 @@ if missing_headers:
     print(f"Missing security headers: {missing_headers}")
 else:
     print("All recommended security headers are present")
-    
+
 # Analyze Content Security Policy
 csp = headers.get("Content-Security-Policy", None)
 if csp:
@@ -75,4 +82,4 @@ if csp:
     else:
         print("All recommended CSP directives are present")
 else:
-    print("Content Security Policy not found. Recommend implementing one.")    
+    print("Content Security Policy not found. Recommend implementing one.")
