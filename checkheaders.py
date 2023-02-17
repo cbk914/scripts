@@ -10,6 +10,7 @@ import re
 parser = argparse.ArgumentParser(description="Analyze headers of a website")
 parser.add_argument("-t", "--target", required=True, help="Target website to analyze")
 parser.add_argument("-f", "--file", help="File to save headers to")
+parser.add_argument("-p", "--proxy", help="Proxy to use when connecting to the website")
 parser.add_argument("--help", action='help', default=argparse.SUPPRESS, help='show this help message and exit')
 
 # Parse the command-line arguments
@@ -29,9 +30,9 @@ try:
         url = args.target
     else:
         url = "http://" + args.target
-    
-    response = requests.get(url)
-    response.raise_for_status()
+    proxies = {'http': args.proxy, 'https': args.proxy} if args.proxy else None
+    response = requests.get(url, proxies=proxies)
+    response.raise_for_status() # Raise an exception if there's an HTTP error status code
     headers = response.headers
     status_code = response.status_code
 except requests.exceptions.RequestException as e:
