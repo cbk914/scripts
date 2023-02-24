@@ -8,6 +8,7 @@ def main():
     parser = argparse.ArgumentParser(description="Scan a target using nmap and export results to different formats")
     parser.add_argument("-t", "--target", required=True, help="Target to scan")
     parser.add_argument("-o", "--output", help="Output format (xml, txt, html)")
+    parser.add_argument("-vs", "--vulnerabilityscan", action="store_true", help="Run vulnerability scan using vulners.nse script")
     args = parser.parse_args()
 
     # Initialize nmap scan object
@@ -15,7 +16,10 @@ def main():
 
     # Perform scan
     try:
-        nm.scan(args.target, arguments='-sV -sC -oA scan_results')
+        if args.vulnerabilityscan:
+            nm.scan(args.target, arguments='-sV -sC -oA scan_results --script vulners --script vulscan')
+        else:
+            nm.scan(args.target, arguments='-sV -sC -oA scan_results')
     except nmap.PortScannerError:
         print("Error: nmap module is not found or improperly installed")
         exit(1)
