@@ -44,7 +44,9 @@ def main():
         elif args.output == "txt":
             nm.export("scan_results.txt")
         elif args.output == "html":
-            nm.export("scan_results.html")
+            # Convert the XML output to HTML using xsltproc
+            xsltproc_cmd = "xsltproc nmap-bootstrap.xsl scan_results.xml > scan_results.html"
+            os.system(xsltproc_cmd)
         else:
             print("Error: Invalid output format. Please specify xml, txt or html.")
             exit(1)
