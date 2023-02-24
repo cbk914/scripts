@@ -28,12 +28,18 @@ def main():
     parser.add_argument("-vs", "--vulnerabilityscan", action="store_true", help="Run vulnerability scan using vuln, vulscan, and vulners.nse scripts")
     args = parser.parse_args()
 
-    # Validate target argument
-    try:
-        socket.gethostbyname(args.target)
-    except socket.gaierror:
-        print(f"Error: Invalid target '{args.target}'. Please enter a valid IP address or hostname.")
-        exit(1)
+    # Check if target argument is a file name
+    if os.path.isfile(args.target):
+        targets = f"-iL {args.target}"
+    else:
+        targets = args.target
+        # Validate target argument
+        try:
+            socket.gethostbyname(targets)
+        except socket.gaierror:
+            print(f"Error: Invalid target '{targets}'. Please enter a valid IP address, hostname, or file name.")
+            exit(1)
+
 
     # Initialize nmap scan object
     nm = nmap.PortScanner()
