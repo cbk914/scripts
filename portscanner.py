@@ -75,12 +75,19 @@ def main():
                 xml_output = f.read()
             print(xml_output)
         elif args.output == "txt":
-            subprocess.run(["xsltproc", "-o", "scan_results.txt", "nmap-text.xsl", "scan_results.xml"], check=True)
+            nm.export_to_file("scan_results.txt", "grepable")
             with open("scan_results.txt", "r") as f:
                 txt_output = f.read()
             print(txt_output)
-        elif args.output == "html":
-            subprocess.run(["xsltproc", "-o", "scan_results.html", "nmap-bootstrap.xsl", "scan_results.xml"], check=True)
+                elif args.output == "html":
+            # Convert the XML output to HTML using xsltproc
+            try:
+                subprocess.check_output(["xsltproc", "nmap-bootstrap.xsl", "scan_results.xml", "-o", "scan_results.html"], stderr=subprocess.STDOUT)
+            except subprocess.CalledProcessError as e:
+                print(f"Error: Failed to convert XML to HTML. Error message: {e.output.decode('utf-8')}")
+                exit(1)
+
+            # Print HTML output to console
             with open("scan_results.html", "r") as f:
                 html_output = f.read()
             print(html_output)
