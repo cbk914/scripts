@@ -4,6 +4,16 @@ import nmap
 import argparse
 import os
 
+def install_script(script_name):
+    """Install an NSE script using nmap's script download feature."""
+    print(f"Trying to install {script_name}...")
+    nm = nmap.PortScanner()
+    nm.script_download(script_name)
+    # Check if script was downloaded successfully
+    if script_name not in nm.get_nse_scripts():
+        print(f"Error: Failed to download {script_name}. Please check the script name and try again.")
+        exit(1)
+
 def main():
     parser = argparse.ArgumentParser(description="Scan a target using nmap and export results to different formats")
     parser.add_argument("-t", "--target", required=True, help="Target to scan")
@@ -17,7 +27,27 @@ def main():
     # Perform scan
     try:
         if args.vulnerabilityscan:
-            nm.scan(args.target, arguments='-sV -sC -oA scan_results --script vulners --script vulscan')
+            # Check if vuln.nse script fails to execute
+            nm.scan(args.target, arguments='-sV -sC -oA scan_results --script vuln')
+            if "Failed to execute" in nm.stderr:
+                # Attempt to install the script and run the scan again
+                install_script("vuln.nse")
+                nm.scan(args.target, arguments='-sV -sC -oA scan_results --script vuln')
+
+            # Check if vulscan.nse script fails to execute
+            nm.scan(args.target, arguments='-sV -sC -oA scan_results --script vulscan')
+            if "Failed to execute" in nm.stderr:
+                # Attempt to install the script and run the scan again
+                install_script("vulscan.nse")
+                nm.scan(args.target, arguments='-sV -sC -oA scan_results --script vulscan')
+
+            # Check if vulners.nse script fails to execute
+            nm.scan(args.target, arguments='-sV -sC -oA scan_results --script vulners')
+            if "Failed to execute" in nm.stderr:
+                # Attempt to install the script and run the scan again
+                install_script("vulners.nse")
+                nm.scan(args.target, arguments='-sV -sC -oA scan_results --script vulners')
+
         else:
             nm.scan(args.target, arguments='-sV -sC -oA scan_results')
     except nmap.PortScannerError:
@@ -26,6 +56,7 @@ def main():
     except Exception as e:
         print("Error: ", e)
         exit(1)
+
 
     # Extract information from scan results
     hosts = nm.all_hosts()
@@ -48,6 +79,7 @@ def main():
         elif args.output == "txt":
             nm.export("scan_results.txt")
         elif args.output == "html":
+            nm.export("scan_results.xml")
             # Convert the XML output to HTML using xsltproc
             xsltproc_cmd = "xsltproc nmap-bootstrap.xsl scan_results.xml > scan_results.html"
             os.system(xsltproc_cmd)
