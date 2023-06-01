@@ -11,6 +11,9 @@ read -p "Enter your GitHub username: " username
 read -sp "Enter your GitHub Personal Access Token: " token
 echo
 
+# Get the user's public email address from GitHub API
+email=$(curl -s -H "Authorization: token $token" "https://api.github.com/users/$username" | jq -r '.email')
+
 # Get the current rate limit status
 rate_limit=$(curl -s -H "Authorization: token $token" https://api.github.com/rate_limit)
 
@@ -23,7 +26,7 @@ reset=$(echo $rate_limit | jq -r '.resources.core.reset')
 if [ $remaining -lt 100 ]; then
   # Calculate the time until the rate limit resets
   let "wait_time = $reset - $(date +%s)"
-  
+
   # Wait until the rate limit resets
   echo "Rate limit exceeded. Waiting for $wait_time seconds."
   sleep $wait_time
@@ -40,22 +43,42 @@ done
 # Function to create a workflow file in a repository
 create_workflow() {
   repo=$1
-  git clone "https://$token@github.com/$username/$repo.git" || return 1
-  cd $repo || return 1
-  if [[ -e .github/workflows/sync.yml ]]; then
-    echo "Workflow already exists for $repo. Skipping."
-    cd ..
-    rm -rf $repo
-    return 0
+  if [ -d "/tmp/$repo" ]; then
+    rm -rf "/tmp/$repo"
   fi
+  git clone "https://$token@github.com/$username/$repo.git" "/tmp/$repo" || return 1
+  cd "/tmp/$repo" || return 1
+
+  # Check if sync.yml exists and compare it to the new one
+  if [[ -e .github/workflows/sync.yml ]]; then
+    local_change=$(stat -c %Y .github/workflows/sync.yml)
+    remote_change=$(date +%s)
+
+    if [[ $local_change -ge $remote_change ]]; then
+      echo "Workflow file is up to date for $repo. Skipping."
+    else
+      if [[ "$auto_update" == "false" ]]; then
+        echo "Workflow file is out of date for $repo. Do you want to update it? (Y/N/All)"
+        read response
+        if [[ "$response" == "N" || "$response" == "n" ]]; then
+          cd ..
+          rm -rf /tmp/$repo
+          return 0
+        fi
+        # If response is "All" or "all", then update the workflow file without asking for the remaining repos
+        if [[ "$response" == "All" || "$response" == "all" ]]; then
+          auto_update=true
+        fi
+      fi
+    fi
+  fi
+
   mkdir -p .github/workflows || return 1
   cat > .github/workflows/sync.yml << EOL
 # Your GitHub Actions workflow
 name: Sync Repositories
 
-on:
-  schedule:
-    - cron: '0 0 * * *' # Runs every day at midnight
+on: [push] 
 
 jobs:
   sync:
@@ -64,14 +87,14 @@ jobs:
       - name: Checkout Source Repo
         uses: actions/checkout@v2
         with:
-          repository: 'src_user/src_repo'
+          repository: '$username/$repo'
           token: \${{ secrets.YOUR_GITHUB_TOKEN }}
           path: src_repo
 
       - name: Checkout Destination Repo
         uses: actions/checkout@v2
         with:
-          repository: 'dest_user/dest_repo'
+          repository: '$username/$repo'
           token: \${{ secrets.YOUR_GITHUB_TOKEN }}
           path: dest_repo
 
@@ -79,17 +102,18 @@ jobs:
         run: |
           rsync -a --delete src_repo/ dest_repo/
           cd dest_repo
-          git config user.name 'Your Name'
-          git config user.email 'your-email@example.com'
+          git config user.name '$username'
+          git config user.email '$email'
           git add .
           git commit -m "Sync with source repo"
           git push
 EOL
+
   git add . || return 1
-  git commit -m "Add sync workflow to $repo on $(date)" || return 1
+  git commit -m "Add sync workflow to $repo on $(date)" || true
   git push || return 1
   cd .. || return 1
-  rm -rf $repo || return 1
+  rm -rf "/tmp/$repo" || return 1
 }
 
 # Enable command tracing and exit on error if debug is set
@@ -111,8 +135,8 @@ elif echo "$response" | jq -e '.message' | grep -q "API rate limit exceeded"; th
   exit 1
 fi
 
-# Get the list of repositories from the response
-repos=$(echo "$response" | jq -r '.[].name')
+# Get the list of repositories from the response that are forks
+repos=$(echo "$response" | jq -r '.[] | select(.fork==true) | .name')
 
 # Loop over all repositories and create the workflow file
 for repo in $repos; do
