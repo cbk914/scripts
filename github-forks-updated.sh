@@ -46,8 +46,22 @@ create_workflow() {
   if [ -d "/tmp/$repo" ]; then
     rm -rf "/tmp/$repo"
   fi
+
+  # Get repository details
+  repo_details=$(curl -s -H "Authorization: token $token" "https://api.github.com/repos/$username/$repo")
+
+  # Get source repo info
+  src_repo=$(echo "$repo_details" | jq -r '.parent.full_name')
+
+  # If src_repo is null, then this repository is not a fork.
+  if [ "$src_repo" == "null" ]; then
+    echo "$repo is not a fork. Skipping."
+    return 0
+  fi
+
   git clone "https://$token@github.com/$username/$repo.git" "/tmp/$repo" || return 1
   cd "/tmp/$repo" || return 1
+
 
   # Check if sync.yml exists and compare it to the new one
   if [[ -e .github/workflows/sync.yml ]]; then
@@ -78,7 +92,9 @@ create_workflow() {
 # Your GitHub Actions workflow
 name: Sync Repositories
 
-on: [push] 
+on:
+  push:
+    branches: [ main ]
 
 jobs:
   sync:
@@ -87,25 +103,17 @@ jobs:
       - name: Checkout Source Repo
         uses: actions/checkout@v2
         with:
-          repository: '$username/$repo'
+          repository: '$src_repo'
           token: \${{ secrets.YOUR_GITHUB_TOKEN }}
-          path: src_repo
-
-      - name: Checkout Destination Repo
-        uses: actions/checkout@v2
-        with:
-          repository: '$username/$repo'
-          token: \${{ secrets.YOUR_GITHUB_TOKEN }}
-          path: dest_repo
+          path: '$repo'
 
       - name: Sync Repositories
         run: |
-          rsync -a --delete src_repo/ dest_repo/
-          cd dest_repo
+          rsync -a --delete ./$repo/ .
           git config user.name '$username'
           git config user.email '$email'
           git add .
-          git commit -m "Sync with source repo"
+          git diff-index --quiet HEAD || git commit -m "Sync with source repo"
           git push
 EOL
 
