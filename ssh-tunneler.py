@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# Author: David Espejo (Fortytwo Security)
+# Author: cbk914
 import subprocess
 import getpass
 import signal
@@ -47,10 +47,11 @@ try:
             f'{ssh_user}@{remote_server}'
         ]
     elif tunnel_type == 'proxy':
+        proxy_port = input("Enter the proxy port: ")
         command = [
             'ssh',
             '-D',
-            '8080',
+            f'{proxy_port}',
             '-N',
             '-f',
             f'{ssh_user}@{remote_server}'
@@ -62,7 +63,7 @@ try:
     if tunnel_type in ['local', 'remote']:
         print(f"Connect to it using localhost:{local_port}")
     else:
-        print("Connect to the proxy using localhost:8080")
+        print(f"Connect to the proxy using localhost:{proxy_port}")
 
     # Register cleanup function to be called upon exit
     signal.signal(signal.SIGTERM, handler)
@@ -74,3 +75,4 @@ try:
 except Exception as e:
     print(f"Exception: {e}")
     sys.exit(1)
+
