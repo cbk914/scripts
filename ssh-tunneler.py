@@ -28,24 +28,26 @@ try:
         local_port = input("Enter the local port: ")
         remote_port = input("Enter the remote port: ")
 
-    if tunnel_type == 'local':
-        command = [
-            'ssh',
-            '-L',
-            f'{local_port}:127.0.0.1:{remote_port}',
-            '-N',
-            '-f',
-            f'{ssh_user}@{remote_server}'
-        ]
-    elif tunnel_type == 'remote':
-        command = [
-            'ssh',
-            '-R',
-            f'{remote_port}:127.0.0.1:{local_port}',
-            '-N',
-            '-f',
-            f'{ssh_user}@{remote_server}'
-        ]
+if tunnel_type == 'local':
+    remote_host = input("Enter the remote host: ")
+    command = [
+        'ssh',
+        '-L',
+        f'{local_port}:{remote_host}:{remote_port}',
+        '-N',
+        '-f',
+        f'{ssh_user}@{remote_server}'
+    ]
+if tunnel_type == 'remote':
+    local_host = input("Enter the local host: ")
+    command = [
+        'ssh',
+        '-R',
+        f'{local_port}:{local_host}:{remote_port}',
+        '-N',
+        '-f',
+        f'{ssh_user}@{remote_server}'
+    ]
     elif tunnel_type == 'proxy':
         proxy_port = input("Enter the proxy port: ")
         command = [
