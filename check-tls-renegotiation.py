@@ -1,24 +1,36 @@
-#!/bin/python
-# Author: cbk914
+#!/usr/bin/env python3
 import argparse
 import subprocess
 
 def check_renegotiation(target):
-    """
-    Check for insecure SSL/TLS renegotiation on the specified target.
-    """
-    result = subprocess.run(['openssl', 's_client', '-connect', target, '-msg'],
-                            stdin=subprocess.PIPE,
-                            stdout=subprocess.PIPE,
-                            stderr=subprocess.PIPE)
-    print(result.stdout.decode())
-    if "Secure Renegotiation IS NOT supported" in result.stdout.decode():
-        print("[*] Insecure renegotiation is supported on target " + target)
+    cmd = [
+        "openssl", "s_client",
+        "-connect", target,
+        "-tls1_2"
+    ]
+
+    proc = subprocess.run(
+        cmd,
+        input=b"R\n",   # harmless on OpenSSL 3.x
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        timeout=10
+    )
+
+    output = (proc.stdout + proc.stderr).decode(errors="ignore")
+    print(output)
+
+    if "Secure Renegotiation IS NOT supported" in output:
+        print(f"[!] VULNERABLE: insecure renegotiation supported on {target}")
+    elif "Secure Renegotiation IS supported" in output:
+        print(f"[+] SAFE: secure renegotiation supported on {target}")
     else:
-        print("[*] Insecure renegotiation is not supported on target " + target)
+        print(f"[+] SAFE: renegotiation disabled or not applicable on {target}")
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Check for SSL/TLS insecure renegotiation.")
-    parser.add_argument("-t", "--target", required=True, help="Target hostname and port (e.g. example.com:443)")
+    parser = argparse.ArgumentParser(
+        description="TLS renegotiation check (OpenSSL 3.x safe)"
+    )
+    parser.add_argument("-t", "--target", required=True, help="host:port")
     args = parser.parse_args()
     check_renegotiation(args.target)
