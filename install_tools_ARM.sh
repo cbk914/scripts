@@ -11,7 +11,25 @@ sudo apt autoremove
 
 # Install small basic tools
 sudo apt install vim golang-go telnet screen rdesktop python3-pi python3-pip venv iptraf-ng xsltproc
-curl https://getcroc.schollz.com | bash
+
+# Install croc
+#
+# This was:
+#     curl https://getcroc.schollz.com | bash
+# Piping a remote script straight into bash means whatever the endpoint serves
+# at that moment runs as you, with no review, no pinning and no rollback. The
+# download is also not a file on disk afterwards, so nothing records what ran.
+#
+# Fetch it to a file, pin its SHA-256, verify, then execute. Set CROC_SHA256
+# to the digest of the script you intend to run; until then this fails closed.
+CROC_SHA256="${CROC_SHA256:-UNPINNED}"
+. "$(dirname "$0")/lib/verify_download.sh"
+CROC_INSTALLER="croc-install.sh"
+verify_download "https://getcroc.schollz.com" "$CROC_INSTALLER" "$CROC_SHA256" || {
+    echo "ERROR: croc installer failed verification; not running it." >&2
+    exit 1
+}
+bash "$CROC_INSTALLER"
 
 # Some customizations
 touch ~/.vimrc && echo "set mouse-=a" > ~/.vimrc

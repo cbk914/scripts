@@ -36,7 +36,24 @@ sleep 3
 
 echo $LIGHTGREEN"[+] Downloading and installing American Fuzzy Lop..."$NOCOLOR
 cd /usr/local/bin/afl
-wget http://lcamtuf.coredump.cx/afl/releases/afl-latest.tgz
+
+# Pin the SHA-256 of the AFL release archive before downloading it.
+#
+# This was:
+#     wget http://lcamtuf.coredump.cx/afl/releases/afl-latest.tgz
+# Plaintext HTTP with no integrity check, immediately followed by tar, mv,
+# make and rmdir under /usr/local/bin. Anyone on the network path could
+# substitute the archive and have it built and installed.
+#
+# Set AFL_SHA256 to the real digest of the release you intend to install.
+# Until it is set the download fails closed rather than trusting whatever
+# arrives. Note lcamtuf.coredump.cx has been offline for years: obtain the
+# archive from a mirror you trust and pin its digest.
+AFL_SHA256="${AFL_SHA256:-UNPINNED}"
+. "$(dirname "$0")/lib/verify_download.sh"
+verify_download "https://lcamtuf.coredump.cx/afl/releases/afl-latest.tgz" \
+    "/usr/local/bin/afl/afl-latest.tgz" "$AFL_SHA256" || exit 1
+
 tar xzf afl-latest.tgz
 mv /usr/local/bin/afl/afl-2.52b/* /usr/local/bin/afl/
 rm afl-latest.tgz
@@ -98,7 +115,14 @@ sleep 3
 
 echo $LIGHTGREEN"[+] Downloading example testcases..."$NOCOLOR
 cd /usr/local/bin/Suricata_AFL/fuzzing/AFL_testcases
-wget http://lcamtuf.coredump.cx/afl/demo/afl_testcases.tgz
+
+# Pinned download, replacing a plaintext wget with no integrity check.
+AFL_TESTCASES_SHA256="${AFL_TESTCASES_SHA256:-UNPINNED}"
+. "$(dirname "$0")/lib/verify_download.sh"
+verify_download "https://lcamtuf.coredump.cx/afl/demo/afl_testcases.tgz" \
+    "/usr/local/bin/Suricata_AFL/fuzzing/AFL_testcases/afl_testcases.tgz" \
+    "$AFL_TESTCASES_SHA256" || exit 1
+
 tar xzf /usr/local/bin/Suricata_AFL/fuzzing/afl-testcases.tgz
 rm /usr/local/bin/Suricata_AFL/fuzzing/afl-testcases.tgz
 sleep 3

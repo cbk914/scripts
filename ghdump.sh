@@ -8,6 +8,6 @@
     
     find .git/objects/ -type f | grep -v '/pack/' |
     awk -F'/' '{print $(NF-1)$NF}';
-} | while read o; do 
-        git cat-file -p $o;
+} | while read -r o; do
+        git cat-file -p "$o";
 done
